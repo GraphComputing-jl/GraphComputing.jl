@@ -100,12 +100,21 @@ The strategy is a symbol
 function gen_cache_init_code end
 
 """
-    gen_access_expr(device::AbstractDevice, symbol::Symbol)
+    _gen_access_expr(device::AbstractDevice, cache_strategy::CacheStrategy, symbol::Symbol)
 
 Interface function that must be implemented for every subtype of [`AbstractDevice`](@ref) and at least one [`CacheStrategy`](@ref).
 Return an `Expr` or `QuoteNode` accessing the variable identified by [`symbol`].
 """
-function gen_access_expr end
+function _gen_access_expr end
+
+"""
+    _gen_local_init(fc::FunctionCall, device::AbstractDevice, cache_strategy::CacheStrategy)
+
+Interface function that must be implemented for every subtype of [`AbstractDevice`](@ref) and at least one [`CacheStrategy`](@ref).
+Return an `Expr` or `QuoteNode` that initializes the access expression returned by [`_gen_access_expr`](@ref) in the local scope.
+This expression may be empty. For local variables it should be `local <variable_name>::<Type>`.
+"""
+function _gen_local_init end
 
 """
     kernel(gpu_type::Type{<:AbstractGPU}, graph::DAG, instance)

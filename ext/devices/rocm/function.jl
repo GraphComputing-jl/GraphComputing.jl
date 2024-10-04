@@ -6,18 +6,22 @@ function ComputableDAGs.kernel(
 
     init_caches = Expr(:block, tape.initCachesCode...)
     assign_inputs = Expr(:block, ComputableDAGs.expr_from_fc.(tape.inputAssignCode)...)
-    code = Expr(:block, ComputableDAGs.expr_from_fc.(tape.computeCode)...)
+
+    # TODO use gen_function_body here
+    code = Expr(:block, ComputableDAGs.expr_from_fc.(tape.schedule)...)
 
     function_id = ComputableDAGs.to_var_name(UUIDs.uuid1(ComputableDAGs.rng[1]))
     res_sym = eval(
-        ComputableDAGs.gen_access_expr(
-            ComputableDAGs.entry_device(tape.machine), tape.outputSymbol
+        ComputableDAGs._gen_access_expr(
+            ComputableDAGs.entry_device(tape.machine),
+            ComputableDAGs.entry_device(tape.machine).cacheStrategy,
+            tape.outputSymbol,
         ),
     )
     expr = Meta.parse(
         "function compute_$(function_id)(input_vector, output_vector, n::Int64)
             id = (workgroupIdx().x - 1) * workgroupDim().x + workgroupIdx().x
-            if (id > n)  
+            if (id > n)
                 return
             end
             @inline data_input = input_vector[id]

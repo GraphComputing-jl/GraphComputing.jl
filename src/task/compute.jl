@@ -11,7 +11,7 @@ For ordinary compute or data tasks the vector will contain exactly one element.
 function get_function_call(
     t::CompTask, device::AbstractDevice, in_symbols::AbstractVector, out_symbol::Symbol
 ) where {CompTask<:AbstractComputeTask}
-    return [FunctionCall(compute, SVector{1,Any}(t), in_symbols, out_symbol, device)]
+    return [FunctionCall(compute, SVector{1,Any}(t), in_symbols, out_symbol, Any, device)]
 end
 
 function get_function_call(node::ComputeTaskNode)
@@ -42,7 +42,7 @@ function get_function_call(node::ComputeTaskNode)
 end
 
 function get_function_call(node::DataTaskNode)
-    @assert length(children(node)) == 1 "trying to call get_expression on a data task node that has $(length(node.children)) children instead of 1"
+    @assert length(children(node)) == 1 "trying to call get_function_call on a data task node that has $(length(node.children)) children instead of 1"
 
     # TODO: dispatch to device implementations generating the copy commands
     return [
@@ -51,19 +51,36 @@ function get_function_call(node::DataTaskNode)
             SVector{0,Any}(),
             SVector{1,Symbol}(Symbol(to_var_name(first(children(node))[1].id))),
             Symbol(to_var_name(node.id)),
+            Any,
             first(children(node))[1].device,
         ),
     ]
 end
 
 function get_init_function_call(node::DataTaskNode, device::AbstractDevice)
-    @assert isempty(children(node)) "trying to call get_init_expression on a data task node that is not an entry node."
+    @assert isempty(children(node)) "trying to call get_init_function_call on a data task node that is not an entry node."
 
     return FunctionCall(
         unpack_identity,
         SVector{0,Any}(),
         SVector{1,Symbol}(Symbol("$(to_var_name(node.id))_in")),
         Symbol(to_var_name(node.id)),
+        Any,
         device,
     )
+end
+
+function result_type(fc::FunctionCall, known_res_types::Dict{Symbol,Type})
+    argument_types = (
+        typeof.(fc.value_arguments)..., getindex.(Ref(known_res_types), fc.arguments)...
+    )
+    types = Base.return_types(fc.func, argument_types)
+
+    if length(types) > 1
+        throw(
+            "failure during type inference: function call $fc is type unstable, possible return types: $types",
+        )
+    end
+
+    return types[1]
 end

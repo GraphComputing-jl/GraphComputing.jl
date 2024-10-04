@@ -130,6 +130,7 @@ include("scheduler/interface.jl")
 include("scheduler/greedy.jl")
 
 include("code_gen/type.jl")
+include("code_gen/utils.jl")
 include("code_gen/tape_machine.jl")
 include("code_gen/function.jl")
 

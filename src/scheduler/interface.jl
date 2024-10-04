@@ -15,6 +15,6 @@ The function assigns each [`ComputeTaskNode`](@ref) of the [`DAG`](@ref) to one 
 
 [`DataTaskNode`](@ref)s are not scheduled to devices since they do not compute. Instead, a data node transfers data from the [`AbstractDevice`](@ref) of their child to all [`AbstractDevice`](@ref)s of its parents.
 
-Return a `Vector{FunctionCall}`. See [`FunctionCall`](@ref)
+The produced schedule can be converted to [`FunctionCall`](@ref)s using [`lower`](@ref).
 """
 function schedule_dag end

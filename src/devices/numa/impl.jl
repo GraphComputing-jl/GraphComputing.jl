@@ -64,32 +64,45 @@ function gen_cache_init_code(device::NumaNode)
 end
 
 """
-    gen_access_expr(device::NumaNode, symbol::Symbol)
-
-Generate code to access the variable designated by `symbol` on a [`NumaNode`](@ref), using the [`CacheStrategy`](@ref) set in the device.
-"""
-function gen_access_expr(device::NumaNode, symbol::Symbol)
-    return _gen_access_expr(device, device.cacheStrategy, symbol)
-end
-
-"""
     _gen_access_expr(device::NumaNode, ::LocalVariables, symbol::Symbol)
 
-Internal function for dispatch, used in [`gen_access_expr`](@ref).
+Interface implementation, dispatched to from [`gen_access_expr`](@ref).
 """
-function _gen_access_expr(device::NumaNode, ::LocalVariables, symbol::Symbol)
+function _gen_access_expr(::NumaNode, ::LocalVariables, symbol::Symbol)
+    # TODO rewrite these with Expr instead of quote node
     s = Symbol("data_$symbol")
-    quoteNode = Meta.parse(":($s)")
-    return quoteNode
+    quote_node = Meta.parse(":($s)")
+    return quote_node
 end
 
 """
     _gen_access_expr(device::NumaNode, ::Dictionary, symbol::Symbol)
 
-Internal function for dispatch, used in [`gen_access_expr`](@ref).
+Interface implementation, dispatched to from [`gen_access_expr`](@ref).
 """
 function _gen_access_expr(device::NumaNode, ::Dictionary, symbol::Symbol)
-    accessStr = ":(cache_$(to_var_name(device.id))[:$symbol])"
-    quoteNode = Meta.parse(accessStr)
-    return quoteNode
+    # TODO rewrite these with Expr instead of quote node
+    access_str = ":(cache_$(to_var_name(device.id))[:$symbol])"
+    quote_node = Meta.parse(access_str)
+    return quote_node
+end
+
+"""
+    _gen_local_init(fc::FunctionCall, device::NumaNode, cache_strategy::LocalVariables)
+
+Interface implementation, dispatched to from [`gen_local_init`](@ref).
+"""
+function _gen_local_init(fc::FunctionCall, ::NumaNode, ::LocalVariables)
+    s = Symbol("data_$(fc.return_symbol)")
+    quote_node = Expr(:local, s, :(::), Symbol(fc.return_type)) # TODO: figure out how to get type info for this local variable
+    return quote_node
+end
+
+"""
+    _gen_local_init(fc::FunctionCall, device::NumaNode, cache_strategy::Dictionary)
+
+Interface implementation, dispatched to from [`gen_local_init`](@ref).
+"""
+function _gen_local_init(::FunctionCall, ::NumaNode, ::Dictionary)
+    return Exp()
 end

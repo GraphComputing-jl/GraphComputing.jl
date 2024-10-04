@@ -12,7 +12,7 @@ TODO: update docs
 struct Tape{INPUT}
     initCachesCode::Vector{Expr}
     inputAssignCode::Vector{FunctionCall}
-    computeCode::Vector{FunctionCall}
+    schedule::Vector{FunctionCall}
     inputSymbols::Dict{String,Vector{Symbol}}
     outputSymbol::Symbol
     cache::Dict{Symbol,Any}

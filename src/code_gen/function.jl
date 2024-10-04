@@ -14,18 +14,28 @@ using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 ```
 in your top level.
+
+## Keyword Arguments
+
+`closures_size` (default=500): The size of closures to use in the main generated code. This specifies the size of code blocks across which the compiler cannot optimize. For sufficiently large functions, a larger value means longer compile times but potentially faster execution time.
 """
 function get_compute_function(
-    graph::DAG, instance, machine::Machine, context_module::Module
+    graph::DAG, instance, machine::Machine, context_module::Module; closures_size=500
 )
     tape = gen_tape(graph, instance, machine, context_module)
 
     initCaches = Expr(:block, tape.initCachesCode...)
     assignInputs = Expr(:block, expr_from_fc.(tape.inputAssignCode)...)
-    code = Expr(:block, expr_from_fc.(tape.computeCode)...)
+    code = gen_function_body(tape; closures_size=closures_size)
 
     functionId = to_var_name(UUIDs.uuid1(rng[1]))
-    resSym = eval(gen_access_expr(entry_device(tape.machine), tape.outputSymbol))
+    resSym = eval(
+        _gen_access_expr(
+            entry_device(tape.machine),
+            entry_device(tape.machine).cacheStrategy,
+            tape.outputSymbol,
+        ),
+    )
     expr = #
     Expr(
         :function, # function definition

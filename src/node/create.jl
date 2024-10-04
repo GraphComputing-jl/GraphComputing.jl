@@ -1,4 +1,3 @@
-
 function DataTaskNode(t::AbstractDataTask, name="")
     return DataTaskNode(
         t,

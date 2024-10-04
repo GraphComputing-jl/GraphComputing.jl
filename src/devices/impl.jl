@@ -62,3 +62,21 @@ function cpu_st()
         [NumaNode(0, 1, default_strategy(NumaNode), -1.0, UUIDs.uuid1())], [-1.0;;]
     )
 end
+
+"""
+    gen_access_expr(fc::FunctionCall)
+
+Dispatch from the given [`FunctionCall`](@ref) to the interface function `_gen_access_expr`(@ref).
+"""
+function gen_access_expr(fc::FunctionCall)
+    return _gen_access_expr(fc.device, fc.device.cacheStrategy, fc.return_symbol)
+end
+
+"""
+    gen_local_init(fc::FunctionCall)
+
+Dispatch from the given [`FunctionCall`](@ref) to the interface function `_gen_local_init`(@ref).
+"""
+function gen_local_init(fc::FunctionCall)
+    return _gen_local_init(fc, fc.device, fc.device.cacheStrategy)
+end

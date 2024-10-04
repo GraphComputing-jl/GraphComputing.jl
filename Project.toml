@@ -22,14 +22,14 @@ CUDAExt = "CUDA"
 oneAPIExt = "oneAPI"
 
 [compat]
-julia = "1.10"
 AMDGPU = "1"
 CUDA = "5"
 DataStructures = "0.18"
 NumaAllocators = "0.2"
-oneAPI = "1"
 RuntimeGeneratedFunctions = "0.5"
 StaticArrays = "1"
+julia = "1.10"
+oneAPI = "1"
 
 [extras]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
